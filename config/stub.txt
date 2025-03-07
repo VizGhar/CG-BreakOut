@@ -1,0 +1,8 @@
+gameloop
+read i:int
+
+STATEMENT
+Let's Break Out
+
+INPUT
+i: number
