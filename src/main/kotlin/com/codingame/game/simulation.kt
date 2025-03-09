@@ -1,9 +1,7 @@
 package com.codingame.game
 
 import kotlin.math.cos
-import kotlin.math.roundToInt
 import kotlin.math.sin
-import kotlin.math.tan
 
 private const val maxAbsBallAngle = 70
 private const val minAbsBallAngle = 10
@@ -15,6 +13,7 @@ var paddleCenterPosition = Position(640 / 2, 16)
 var ballCenterPosition = Position(640 / 2, 32 + 8)
 var ballAngle = minAbsBallAngle
 var blocks = listOf<Block>()
+private val gameBoard = Block(-1, BreakoutColor.RED, -1, 0, 0, 640, 480)
 
 private fun changeBallDirection(by: Int) {
     ballAngle = when {
@@ -35,59 +34,51 @@ data class Block(
     val y: Int = (id / 10 + 8) * 32,
     val width: Int = 64,
     val height: Int = 32
-)
-data class SimulationPoint(val position: Position, val hitObstacleId: Int?)
-
-private val horizontal = List(9) { (it + 1) * 64 }
-private val vertical = List(8) { (it + 7) * 32 }
-
-private data class Note(val block: Block, val dist: Double, val hitPoint: Position)
-
-fun simulate(blocks: List<Block>): List<SimulationPoint> {
-    val obstacles = blocks.toMutableList()
-    val visitedPoints = mutableListOf<SimulationPoint>()
-    var currentPos = ballCenterPosition
-    var angleRad = Math.toRadians(ballAngle.toDouble())
-
-    do {
-        val corners = listOf(
-            Position(currentPos.x - 8, currentPos.y + 8),
-            Position(currentPos.x + 8, currentPos.y + 8),
-            Position(currentPos.x - 8, currentPos.y - 8),
-            Position(currentPos.x + 8, currentPos.y - 8)
-        )
-
-        val candidates = mutableListOf<Note>()
-
-        for (corner in corners) {
-            for (obsY in horizontal) {
-                val dY = obsY - corner.y
-                val dX = dY * tan(angleRad)
-                val dist = dY / cos(angleRad)
-                obstacles.firstOrNull { obstacle -> corner.y + dY == obstacle.y && obstacle.x.toDouble() in corner.x + dX.. corner.x + dX + 64.0 }
-                    ?.let { candidates += Note(it, dist, Position((corner.x + dX).roundToInt(), corner.y + dY)) }
-            }
-
-            for (obsX in vertical) {
-                val dX = obsX - corner.x
-                val dY = dX / tan(angleRad)
-                val dist = dX / sin(angleRad)
-                obstacles.firstOrNull { obstacle -> corner.x + dX == obstacle.x && obstacle.y.toDouble() in corner.y + dY..corner.y + dY + 32.0 }
-                    ?.let { candidates += Note(it, dist, Position(corner.x + dX, (corner.y + dY).roundToInt())) }
-            }
-
-        }
-
-        val winner = candidates.minByOrNull { it.dist }
-
-        if (winner == null) {
-            // hit a wall <-
-        } else {
-            visitedPoints += SimulationPoint(winner.hitPoint, winner.block.id)
-        }
-
-        currentPos = Position(0, 0)
-    } while (currentPos.y > 0)
-
-    return visitedPoints
+) {
+    val edges get() = listOf(
+        Pair(x, y) to Pair(x + width, y),
+        Pair(x, y) to Pair(x, y - height),
+        Pair(x + width, y) to Pair(x + width, y - height),
+        Pair(x, y - height) to Pair(x + width, y - height)
+    )
 }
+
+data class SimulationPoint(val position: Position, val hitBlock: Block?)
+
+fun sim(): List<SimulationPoint> {
+    val rad = Math.toRadians(ballAngle.toDouble())
+    val dx = sin(rad)
+    val dy = cos(rad)
+
+    val ballCorners = listOf(-8 to -8, 8 to -8, 8 to 8, -8 to 8)
+
+    var tMin = Double.POSITIVE_INFINITY
+    var hit: Block? = null
+    var hitPoint: Pair<Double, Double>? = null
+
+    for (block in blocks + gameBoard) {
+        for ((ox, oy) in ballCorners) {
+            val startX = ballCenterPosition.x + ox
+            val startY = ballCenterPosition.y + oy
+
+            for (edge in block.edges) {
+                val (x1, y1) = edge.first
+                val (x2, y2) = edge.second
+
+                val denom = (x2 - x1) * dy - (y2 - y1) * dx
+                val t = ((startX - x1) * dy - (startY - y1) * dx) / denom
+                val u = ((startX - x1) * (y2 - y1) - (startY - y1) * (x2 - x1)) / denom
+
+                if (t in 0.0..1.0 && u > 0 && u < tMin) {
+                    tMin = u
+                    hit = block
+                    hitPoint = Pair(startX + u * dx, startY + u * dy)
+                }
+            }
+        }
+    }
+    return listOf(
+        SimulationPoint(hitPoint!!.let { Position(it.first.toInt(), it.second.toInt()) }, hit)
+    )
+}
+

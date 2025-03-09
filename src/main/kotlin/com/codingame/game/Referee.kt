@@ -38,8 +38,8 @@ class Referee : AbstractReferee() {
         try {
             gameManager.player.execute()
             val output = gameManager.player.outputs[0].toInt()
-            val sim = simulate(blocks = blocks)
-            update(sim, output)
+            val sim = sim()
+            graphicEntityModule.update(sim, output)
         } catch (e: AbstractPlayer.TimeoutException) {
             gameManager.loseGame("Timeout")
             return

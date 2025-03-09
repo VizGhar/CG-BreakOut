@@ -14,6 +14,7 @@ private const val boardHeight = blockHeight * heightInBlocks
 private val brickMap = mutableMapOf<Int, Group>()
 private lateinit var paddleSprite: Group
 private lateinit var ballSprite: Group
+private lateinit var game: Group
 
 enum class BrickHardness(val value: Int) { MAX(3), MID(2), MIN(1) }
 
@@ -41,7 +42,7 @@ private fun GraphicEntityModule.paddle(color: BreakoutColor): Group =
 private fun GraphicEntityModule.ball(color: BreakoutColor): Group =
     breakoutSprite("ball", color).also { ballSprite = it }
 
-fun update(sim: List<SimulationPoint>, output: Int) {
+fun GraphicEntityModule.update(sim: List<SimulationPoint>, output: Int) {
     val remove = brickMap.filter { (brickId, _) -> blocks.none { it.id == brickId } }
     for ((brickId, sprite) in remove) {
         sprite.setVisible(false)
@@ -56,8 +57,15 @@ fun update(sim: List<SimulationPoint>, output: Int) {
         .setY(boardHeight - (paddleCenterPosition.y + paddleHeight / 2) * 2)
         .setX((paddleCenterPosition.x - paddleWidth / 2) * 2)
 
-    if (sim.size > 0) {
-        ballSprite.setX(sim[0].position.x * 2).setY((boardHeight - sim[0].position.y * 2))
+    if (sim.isNotEmpty()) {
+        for (a in sim) {
+            ballSprite.setX(a.position.x * 2).setY((boardHeight - a.position.y * 2))
+            commitWorldState(0.99)
+            brickMap[a.hitBlock!!.id]?.setVisible(false)
+            game.add(
+                brick(BrickHardness.MID, BreakoutColor.GREEN).setX(brickMap[a.hitBlock!!.id]!!.x).setY(brickMap[a.hitBlock!!.id]!!.y)
+            )
+        }
     } else {
         ballSprite
             .setY(boardHeight - (ballCenterPosition.y + ballHeight / 2) * 2)
@@ -79,11 +87,20 @@ fun GraphicEntityModule.game(
     createTilingSprite().setImage("side.png").setBaseHeight(32).setBaseWidth(world.height).setRotation(Math.toRadians(90.0)).setX(boardX + boardWidth + 32).setY(boardY)
 
     return createGroup().setY(boardY).setX(boardX).apply {
-        add(*blocks.map { obstacle -> brick(when(obstacle.lives) { 2 -> BrickHardness.MID; 3 -> BrickHardness.MAX; else -> BrickHardness.MIN}, obstacle.color).setY(boardHeight - obstacle.y * 2).setX(obstacle.x * 2).also { brickMap[obstacle.id] = it } }.toTypedArray())
+        add(*blocks.map { obstacle ->
+            brick(
+                when (obstacle.lives) {
+                    2 -> BrickHardness.MID
+                    3 -> BrickHardness.MAX
+                    else -> BrickHardness.MIN
+                },
+                obstacle.color
+            ).setY(boardHeight - obstacle.y * 2).setX(obstacle.x * 2).also { brickMap[obstacle.id] = it }
+        }.toTypedArray())
         add(paddle(paddleColor))
         add(ball(ballColor))
         update(emptyList(), -1)
-    }
+    }.also { game = it }
 }
 
 fun GraphicEntityModule.background(
