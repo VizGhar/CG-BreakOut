@@ -4,11 +4,16 @@ import com.codingame.gameengine.module.entities.GraphicEntityModule
 import com.codingame.gameengine.module.entities.Group
 
 private const val blockWidth = 128
-private const val widthInBlocks = 11
-private const val boardWidth = blockWidth * widthInBlocks
+private const val widthInBlocks = 10
 private const val blockHeight = 64
-private const val heightInBlocks = 16
+private const val heightInBlocks = 15
+
+private const val boardWidth = blockWidth * widthInBlocks
 private const val boardHeight = blockHeight * heightInBlocks
+
+private val brickMap = mutableMapOf<Int, Group>()
+private lateinit var paddleSprite: Group
+private lateinit var ballSprite: Group
 
 enum class BrickHardness(val value: Int) { MAX(3), MID(2), MIN(1) }
 
@@ -27,26 +32,58 @@ private fun GraphicEntityModule.breakoutSprite(name: String, color: BreakoutColo
     add(createSprite().setImage("${name}_dark.png").setTint(color.dark))
 }
 
-fun GraphicEntityModule.brick(hardness: BrickHardness, color: BreakoutColor): Group =
+private fun GraphicEntityModule.brick(hardness: BrickHardness, color: BreakoutColor): Group =
     breakoutSprite("brick_${hardness.value}", color)
 
-fun GraphicEntityModule.paddle(color: BreakoutColor): Group =
-    breakoutSprite("paddle", color).setY(world.height - 64).setX((world.width - 128) / 2)
+private fun GraphicEntityModule.paddle(color: BreakoutColor): Group =
+    breakoutSprite("paddle", color).also { paddleSprite = it }
 
-fun GraphicEntityModule.ball(color: BreakoutColor): Group =
-    breakoutSprite("ball", color).setY(world.height - 64 - 32).setX((world.width - 32) / 2)
+private fun GraphicEntityModule.ball(color: BreakoutColor): Group =
+    breakoutSprite("ball", color).also { ballSprite = it }
 
-fun GraphicEntityModule.game(): Group {
+fun update(sim: List<SimulationPoint>, output: Int) {
+    val remove = brickMap.filter { (brickId, _) -> blocks.none { it.id == brickId } }
+    for ((brickId, sprite) in remove) {
+        sprite.setVisible(false)
+        brickMap.remove(brickId)
+    }
+
+    if (output != -1) {
+        paddleCenterPosition = paddleCenterPosition.copy(x = output)
+    }
+
+    paddleSprite
+        .setY(boardHeight - (paddleCenterPosition.y + paddleHeight / 2) * 2)
+        .setX((paddleCenterPosition.x - paddleWidth / 2) * 2)
+
+    if (sim.size > 0) {
+        ballSprite.setX(sim[0].position.x * 2).setY((boardHeight - sim[0].position.y * 2))
+    } else {
+        ballSprite
+            .setY(boardHeight - (ballCenterPosition.y + ballHeight / 2) * 2)
+            .setX((ballCenterPosition.x - ballWidth / 2) * 2)
+    }
+}
+
+fun GraphicEntityModule.game(
+    paddleColor: BreakoutColor,
+    ballColor: BreakoutColor
+): Group {
     val boardX = (world.width - boardWidth) / 2
-    val boardY = (world.height - boardHeight) / 2
+    val boardY = world.height - boardHeight
 
     createSprite().setImage("corner.png").setX(boardX - 32).setY(boardY - 32)
     createSprite().setImage("corner.png").setX(boardX + boardWidth).setY(boardY - 32)
-    createTilingSprite().setImage("side.png").setX(boardX).setY(boardY - 32).setBaseWidth(boardWidth)
+    createTilingSprite().setImage("side.png").setX(boardX).setY(boardY - 32).setBaseHeight(32).setBaseWidth(boardWidth)
     createTilingSprite().setImage("side.png").setBaseHeight(32).setBaseWidth(world.height).setRotation(Math.toRadians(90.0)).setX(boardX).setY(boardY)
     createTilingSprite().setImage("side.png").setBaseHeight(32).setBaseWidth(world.height).setRotation(Math.toRadians(90.0)).setX(boardX + boardWidth + 32).setY(boardY)
 
-    return createGroup().setY(boardY).setX(boardX)
+    return createGroup().setY(boardY).setX(boardX).apply {
+        add(*blocks.map { obstacle -> brick(when(obstacle.lives) { 2 -> BrickHardness.MID; 3 -> BrickHardness.MAX; else -> BrickHardness.MIN}, obstacle.color).setY(boardHeight - obstacle.y * 2).setX(obstacle.x * 2).also { brickMap[obstacle.id] = it } }.toTypedArray())
+        add(paddle(paddleColor))
+        add(ball(ballColor))
+        update(emptyList(), -1)
+    }
 }
 
 fun GraphicEntityModule.background(

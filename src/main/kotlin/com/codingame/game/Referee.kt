@@ -6,7 +6,6 @@ import com.codingame.gameengine.core.SoloGameManager
 import com.codingame.gameengine.module.entities.GraphicEntityModule
 import com.google.inject.Inject
 
-//
 class Referee : AbstractReferee() {
 
     @Inject
@@ -18,23 +17,29 @@ class Referee : AbstractReferee() {
     override fun init() {
         gameManager.firstTurnMaxTime = 2000
         gameManager.turnMaxTime = 100
-        gameManager.testCaseInput
-        initVisual()
+        gameManager.maxTurns = 200
+        ballAngle = gameManager.testCaseInput[2].toInt()
+        blocks = gameManager.testCaseInput[3].split(";").map {
+            val (id, color, lives) = it.split("-")
+            Block(
+                id = id.toInt(),
+                color = BreakoutColor.valueOf(color),
+                lives = lives.toInt()
+            )
+        }
+        initVisual(
+            BreakoutColor.valueOf(gameManager.testCaseInput[0]),
+            BreakoutColor.valueOf(gameManager.testCaseInput[1])
+        )
     }
 
     override fun gameTurn(turn: Int) {
-
-        gameManager.winGame("Congrats!")
-        return
-        // input processing
-        gameManager.player.sendInputLine("")
-
+        gameManager.player.sendInputLine("${ballCenterPosition.x} $ballAngle")
         try {
-            // execution
             gameManager.player.execute()
-            // processing outputs
-            val output = gameManager.player.outputs[0].split(" ")
-
+            val output = gameManager.player.outputs[0].toInt()
+            val sim = simulate(blocks = blocks)
+            update(sim, output)
         } catch (e: AbstractPlayer.TimeoutException) {
             gameManager.loseGame("Timeout")
             return
@@ -43,24 +48,13 @@ class Referee : AbstractReferee() {
             gameManager.loseGame("Invalid player output")
             return
         }
-
-        gameManager.winGame("Congrats!")
+        if (turn == 2) {
+            gameManager.winGame("Congrats!")
+        }
     }
 
-    private fun initVisual() {
+    private fun initVisual(paddleColor: BreakoutColor, ballColor: BreakoutColor) {
         graphicEntityModule.background(flip = true, color = 0XFFFFFF)
-        graphicEntityModule.game().add(
-            *(0..<11).map { graphicEntityModule.brick(BrickHardness.MAX, BreakoutColor.RED).setY(0).setX(it * 128) }.toTypedArray(),
-            *(0..<11).map { graphicEntityModule.brick(BrickHardness.MAX, BreakoutColor.GREY).setY(64).setX(it * 128) }.toTypedArray(),
-            *(0..<11).map { graphicEntityModule.brick(BrickHardness.MAX, BreakoutColor.GREEN).setY(128).setX(it * 128) }.toTypedArray(),
-            *(0..<11).map { graphicEntityModule.brick(BrickHardness.MAX, BreakoutColor.YELLOW).setY(192).setX(it * 128) }.toTypedArray(),
-            *(0..<11).map { graphicEntityModule.brick(BrickHardness.MAX, BreakoutColor.ORANGE).setY(256).setX(it * 128) }.toTypedArray(),
-            *(0..<11).map { graphicEntityModule.brick(BrickHardness.MAX, BreakoutColor.PURPLE).setY(320).setX(it * 128) }.toTypedArray(),
-            *(0..<11).map { graphicEntityModule.brick(BrickHardness.MAX, BreakoutColor.RED).setY(384).setX(it * 128) }.toTypedArray(),
-            *(0..<11).map { graphicEntityModule.brick(BrickHardness.MAX, BreakoutColor.GREY).setY(448).setX(it * 128) }.toTypedArray(),
-            *(0..<11).map { graphicEntityModule.brick(BrickHardness.MAX, BreakoutColor.GREEN).setY(512).setX(it * 128) }.toTypedArray(),
-        )
-        graphicEntityModule.paddle(BreakoutColor.ORANGE)
-        graphicEntityModule.ball(BreakoutColor.GREEN)
+        graphicEntityModule.game(paddleColor, ballColor)
     }
 }
