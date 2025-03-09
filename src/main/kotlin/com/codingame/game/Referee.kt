@@ -4,6 +4,7 @@ import com.codingame.gameengine.core.AbstractPlayer
 import com.codingame.gameengine.core.AbstractReferee
 import com.codingame.gameengine.core.SoloGameManager
 import com.codingame.gameengine.module.entities.GraphicEntityModule
+import com.codingame.gameengine.module.tooltip.TooltipModule
 import com.google.inject.Inject
 
 class Referee : AbstractReferee() {
@@ -13,6 +14,9 @@ class Referee : AbstractReferee() {
 
     @Inject
     private lateinit var graphicEntityModule: GraphicEntityModule
+
+    @Inject
+    private lateinit var tooltipModule: TooltipModule
 
     override fun init() {
         gameManager.firstTurnMaxTime = 2000
@@ -55,6 +59,6 @@ class Referee : AbstractReferee() {
 
     private fun initVisual(paddleColor: BreakoutColor, ballColor: BreakoutColor) {
         graphicEntityModule.background(flip = true, color = 0XFFFFFF)
-        graphicEntityModule.game(paddleColor, ballColor)
+        graphicEntityModule.game(paddleColor, ballColor, tooltipModule)
     }
 }

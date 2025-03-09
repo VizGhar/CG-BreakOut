@@ -2,6 +2,7 @@ package com.codingame.game
 
 import com.codingame.gameengine.module.entities.GraphicEntityModule
 import com.codingame.gameengine.module.entities.Group
+import com.codingame.gameengine.module.tooltip.TooltipModule
 
 private const val blockWidth = 128
 private const val widthInBlocks = 10
@@ -15,8 +16,6 @@ private val brickMap = mutableMapOf<Int, Group>()
 private lateinit var paddleSprite: Group
 private lateinit var ballSprite: Group
 private lateinit var game: Group
-
-enum class BrickHardness(val value: Int) { MAX(3), MID(2), MIN(1) }
 
 enum class BreakoutColor(val light: Int, val dark: Int) {
     GREY(0x99A09A, 0x606170),
@@ -33,8 +32,8 @@ private fun GraphicEntityModule.breakoutSprite(name: String, color: BreakoutColo
     add(createSprite().setImage("${name}_dark.png").setTint(color.dark))
 }
 
-private fun GraphicEntityModule.brick(hardness: BrickHardness, color: BreakoutColor): Group =
-    breakoutSprite("brick_${hardness.value}", color)
+private fun GraphicEntityModule.brick(hardness: Int, color: BreakoutColor): Group =
+    breakoutSprite("brick_$hardness", color)
 
 private fun GraphicEntityModule.paddle(color: BreakoutColor): Group =
     breakoutSprite("paddle", color).also { paddleSprite = it }
@@ -54,33 +53,37 @@ fun GraphicEntityModule.update(sim: List<SimulationPoint>, output: Int) {
     }
 
     paddleSprite
-        .setY(boardHeight - (paddleCenterPosition.y + paddleHeight / 2) * 2)
+        .setY((paddleCenterPosition.y - paddleHeight / 2) * 2)
         .setX((paddleCenterPosition.x - paddleWidth / 2) * 2)
 
     if (sim.isNotEmpty()) {
         for (a in sim) {
             ballSprite.setX(a.position.x * 2).setY((boardHeight - a.position.y * 2))
             commitWorldState(0.99)
-            brickMap[a.hitBlock!!.id]?.setVisible(false)
-            game.add(
-                brick(BrickHardness.MID, BreakoutColor.GREEN).setX(brickMap[a.hitBlock!!.id]!!.x).setY(brickMap[a.hitBlock!!.id]!!.y)
-            )
+            try {
+                brickMap[a.hitBlock!!.id]?.setVisible(false)
+                game.add(
+                    brick(1, BreakoutColor.GREEN).setX(brickMap[a.hitBlock!!.id]!!.x)
+                        .setY(brickMap[a.hitBlock!!.id]!!.y)
+                )
+            } catch (e: Exception) {}
         }
     } else {
         ballSprite
-            .setY(boardHeight - (ballCenterPosition.y + ballHeight / 2) * 2)
+            .setY((ballCenterPosition.y - ballHeight / 2) * 2)
             .setX((ballCenterPosition.x - ballWidth / 2) * 2)
     }
 }
 
 fun GraphicEntityModule.game(
     paddleColor: BreakoutColor,
-    ballColor: BreakoutColor
+    ballColor: BreakoutColor,
+    tooltips: TooltipModule
 ): Group {
     val boardX = (world.width - boardWidth) / 2
     val boardY = world.height - boardHeight
 
-    createSprite().setImage("corner.png").setX(boardX - 32).setY(boardY - 32)
+    createSprite().setImage("corner.png").setX(boardX - 32).setY(boardY - 32).also { tooltips.setTooltipText(it, "HELLO") }
     createSprite().setImage("corner.png").setX(boardX + boardWidth).setY(boardY - 32)
     createTilingSprite().setImage("side.png").setX(boardX).setY(boardY - 32).setBaseHeight(32).setBaseWidth(boardWidth)
     createTilingSprite().setImage("side.png").setBaseHeight(32).setBaseWidth(world.height).setRotation(Math.toRadians(90.0)).setX(boardX).setY(boardY)
@@ -88,15 +91,14 @@ fun GraphicEntityModule.game(
 
     return createGroup().setY(boardY).setX(boardX).apply {
         add(*blocks.map { obstacle ->
-            brick(
-                when (obstacle.lives) {
-                    2 -> BrickHardness.MID
-                    3 -> BrickHardness.MAX
-                    else -> BrickHardness.MIN
-                },
-                obstacle.color
-            ).setY(boardHeight - obstacle.y * 2).setX(obstacle.x * 2).also { brickMap[obstacle.id] = it }
-        }.toTypedArray())
+            brick(obstacle.lives, obstacle.color)
+                .setY(obstacle.y * 2)
+                .setX(obstacle.x * 2)
+                .also {
+                    brickMap[obstacle.id] = it
+                    tooltips.setTooltipText(it, "${it.id} - ${it.x} - ${it.y}")
+                } }.toTypedArray()
+        )
         add(paddle(paddleColor))
         add(ball(ballColor))
         update(emptyList(), -1)
