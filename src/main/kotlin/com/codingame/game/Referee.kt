@@ -18,12 +18,15 @@ class Referee : AbstractReferee() {
     @Inject
     private lateinit var tooltipModule: TooltipModule
 
+    private var remainingTurns: Int = 0
+
     override fun init() {
+        remainingTurns = gameManager.testCaseInput[0].toInt()
         gameManager.firstTurnMaxTime = 2000
         gameManager.turnMaxTime = 100
-        gameManager.maxTurns = 200
-        ballAngle = gameManager.testCaseInput[2].toInt()
-        blocks = gameManager.testCaseInput[3].split(";").map {
+        gameManager.maxTurns = remainingTurns
+        ballAngle = gameManager.testCaseInput[3].toInt()
+        blocks = gameManager.testCaseInput[4].split(";").map {
             val (id, color, lives) = it.split("-")
             Block(
                 id = id.toInt(),
@@ -32,13 +35,18 @@ class Referee : AbstractReferee() {
             )
         }
         initVisual(
-            BreakoutColor.valueOf(gameManager.testCaseInput[0]),
-            BreakoutColor.valueOf(gameManager.testCaseInput[1])
+            BreakoutColor.valueOf(gameManager.testCaseInput[1]),
+            BreakoutColor.valueOf(gameManager.testCaseInput[2])
         )
     }
 
     override fun gameTurn(turn: Int) {
-        gameManager.player.sendInputLine("${ballCenterPosition.x} $ballAngle")
+        // remainingTurns
+        gameManager.player.sendInputLine("$remainingTurns")
+        gameManager.player.sendInputLine("${paddlePosition.x}")
+        gameManager.player.sendInputLine("${ballPosition.x} $ballAngle")
+        gameManager.player.sendInputLine("${blocks.size}")
+        blocks.forEach { gameManager.player.sendInputLine("${it.id} ${it.lives} ${it.x} ${it.y}") }
         try {
             gameManager.player.execute()
             val output = gameManager.player.outputs[0].toInt()
@@ -58,7 +66,7 @@ class Referee : AbstractReferee() {
     }
 
     private fun initVisual(paddleColor: BreakoutColor, ballColor: BreakoutColor) {
-        graphicEntityModule.background(flip = true, color = 0XFFFFFF)
-        graphicEntityModule.game(paddleColor, ballColor, tooltipModule)
+        graphicEntityModule.initGameBackground(flip = true, color = 0XFFFFFF)
+        graphicEntityModule.initGameVisual(paddleColor, ballColor, tooltipModule)
     }
 }

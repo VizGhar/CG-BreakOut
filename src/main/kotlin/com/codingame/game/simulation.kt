@@ -7,14 +7,16 @@ import kotlin.math.sin
 
 private const val maxAbsBallAngle = 70
 private const val minAbsBallAngle = 10
-const val paddleWidth = 64
-const val paddleHeight = 32
-const val ballWidth = 16
-const val ballHeight = 16
-var paddleCenterPosition = Position(640 / 2, 480 - 16)
-var ballCenterPosition = Position(640 / 2, 480 - 32 - 8)
-var ballAngle = minAbsBallAngle
+private const val paddleWidth = 64
+private const val paddleHeight = 32
+private const val ballWidth = 17
+private const val ballHeight = 17
+
+var paddlePosition = Position((640 - 64) / 2, 480 - 32)
+var ballPosition = Position((640 - 17) / 2, 480 - 32 - 17)
+var ballAngle = 0
 var blocks = listOf<Block>()
+
 private val gameBoard = Block(-1, BreakoutColor.RED, -1, 0, 0, 640, 480)
 
 private fun changeBallDirection(by: Int) {
@@ -51,10 +53,10 @@ data class SimulationPoint(val position: Position, val hitBlock: Block?)
 fun sim(): List<SimulationPoint> {
 
     val result = mutableListOf<SimulationPoint>()
-    val ballCorners = listOf(-8 to -8, 8 to -8, 8 to 8, -8 to 8)
+    val ballCorners = listOf(0 to 0, ballWidth to 0, 0 to ballHeight, ballWidth to ballHeight)
 
-    var x = ballCenterPosition.x
-    var y = ballCenterPosition.y
+    var x = ballPosition.x
+    var y = ballPosition.y
     var angle = ballAngle
 
     while (true) {
@@ -99,7 +101,7 @@ fun sim(): List<SimulationPoint> {
 
         result += SimulationPoint(hitPoint, hit)
         hit.lives--
-        ballCenterPosition = hitPoint
+        ballPosition = hitPoint
         ballAngle = reflectedAngle
 
         x = hitPoint.x

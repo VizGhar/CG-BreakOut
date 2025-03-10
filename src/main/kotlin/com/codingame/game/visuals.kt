@@ -17,6 +17,8 @@ private lateinit var paddleSprite: Group
 private lateinit var ballSprite: Group
 private lateinit var game: Group
 
+private const val M = 2
+
 enum class BreakoutColor(val light: Int, val dark: Int) {
     GREY(0x99A09A, 0x606170),
     GREEN(0xC9E9BD, 0x507044),
@@ -49,16 +51,16 @@ fun GraphicEntityModule.update(sim: List<SimulationPoint>, output: Int) {
     }
 
     if (output != -1) {
-        paddleCenterPosition = paddleCenterPosition.copy(x = output)
+        paddlePosition = paddlePosition.copy(x = output)
     }
 
     paddleSprite
-        .setY((paddleCenterPosition.y - paddleHeight / 2) * 2)
-        .setX((paddleCenterPosition.x - paddleWidth / 2) * 2)
+        .setY(paddlePosition.y * M)
+        .setX(paddlePosition.x * M)
 
     if (sim.isNotEmpty()) {
         for (a in sim) {
-            ballSprite.setX(a.position.x * 2).setY((boardHeight - a.position.y * 2))
+            ballSprite.setX(a.position.x * M).setY(a.position.y * M)
             commitWorldState(0.99)
             try {
                 brickMap[a.hitBlock!!.id]?.setVisible(false)
@@ -70,33 +72,33 @@ fun GraphicEntityModule.update(sim: List<SimulationPoint>, output: Int) {
         }
     } else {
         ballSprite
-            .setY((ballCenterPosition.y - ballHeight / 2) * 2)
-            .setX((ballCenterPosition.x - ballWidth / 2) * 2)
+            .setY(ballPosition.y * M)
+            .setX(ballPosition.x * M)
     }
 }
 
-fun GraphicEntityModule.game(
+fun GraphicEntityModule.initGameVisual(
     paddleColor: BreakoutColor,
     ballColor: BreakoutColor,
     tooltips: TooltipModule
-): Group {
+) {
     val boardX = (world.width - boardWidth) / 2
     val boardY = world.height - boardHeight
 
-    createSprite().setImage("corner.png").setX(boardX - 32).setY(boardY - 32).also { tooltips.setTooltipText(it, "HELLO") }
+    createSprite().setImage("corner.png").setX(boardX - 32).setY(boardY - 32)
     createSprite().setImage("corner.png").setX(boardX + boardWidth).setY(boardY - 32)
     createTilingSprite().setImage("side.png").setX(boardX).setY(boardY - 32).setBaseHeight(32).setBaseWidth(boardWidth)
     createTilingSprite().setImage("side.png").setBaseHeight(32).setBaseWidth(world.height).setRotation(Math.toRadians(90.0)).setX(boardX).setY(boardY)
     createTilingSprite().setImage("side.png").setBaseHeight(32).setBaseWidth(world.height).setRotation(Math.toRadians(90.0)).setX(boardX + boardWidth + 32).setY(boardY)
 
-    return createGroup().setY(boardY).setX(boardX).apply {
+    createGroup().setY(boardY).setX(boardX).apply {
         add(*blocks.map { obstacle ->
             brick(obstacle.lives, obstacle.color)
-                .setY(obstacle.y * 2)
-                .setX(obstacle.x * 2)
+                .setX(obstacle.x * M)
+                .setY(obstacle.y * M)
                 .also {
                     brickMap[obstacle.id] = it
-                    tooltips.setTooltipText(it, "${it.id} - ${it.x} - ${it.y}")
+                    tooltips.setTooltipText(it, "${obstacle.id} - ${obstacle.x} - ${obstacle.y}")
                 } }.toTypedArray()
         )
         add(paddle(paddleColor))
@@ -105,10 +107,10 @@ fun GraphicEntityModule.game(
     }.also { game = it }
 }
 
-fun GraphicEntityModule.background(
+fun GraphicEntityModule.initGameBackground(
     color: Int = 0x23090B,
     flip: Boolean = false
-): Group =
+) {
     createGroup().apply {
         // TODO: tint not working?
         add(createRectangle().setFillColor(0x000000).setWidth(world.width).setHeight(world.height))
@@ -117,3 +119,4 @@ fun GraphicEntityModule.background(
             if (flip) it.setY(world.height).setScaleY(-1.0)
         })
     }
+}

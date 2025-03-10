@@ -1,165 +1,162 @@
 <div id="statement_back" class="statement_back" style="display:none"></div>
 <div class="statement-body">
-	<!-- GOAL -->
-	<div class="statement-section statement-goal">
-		<h1>
-			<span class="icon icon-goal">&nbsp;</span>
-			<span>The Goal</span>
-		</h1>
-		<div class="statement-goal-content">
-			<p>After months of struggling, little Jimmy finally solved the <strong>Tetrasticks</strong> puzzle.
-				Frustrated with how tricky it was, he started gluing the pieces to the game board. But just as he was in
-				the middle of it, he opened a window and went to the bathroom. Suddenly, a gust of wind blew in,
-				knocking the board to the floor! Now, only the glued pieces remain in place, while the rest are
-				scattered.</p>
-			<p>You must quickly restore the puzzle before Jimmy notices, or he'll throw a fit again! Carefully place the
-				missing pieces to fill the board, making sure everything fits perfectly.</p>
-		</div>
-	</div>
-
-	<div class="statement-section statement-rules">
-		<h1>
-			<span class="icon icon-rules">&nbsp;</span>
-			<span>Rules</span>
-		</h1>
-		<div>
-			<div class="statement-rules-content">
-				<p>
-					You will be given the description of a board, that has to be entirely covered using the available tetrasticks.
-					<ul>
-						<li>each tetrastick is composed of 4 line segments</li>
-						<li>tetrasticks can share the same intersection but can't cross each other</li>
-						<li>tetrasticks can be flipped horizontally</li>
-						<li>and/or rotated by 0°, 90°, 180°, or 270°</li>
-						<li>below is an overview of all 16 tetrasticks used in the puzzle with their respective
-							<var>ID</var>s, partially resembling their shapes</li>
-					</ul>
-				</p>
-
-				<div style="text-align: center; margin: 15px">
-					<img src="https://cdn-games.codingame.com/community/3996809-1740322242597/22dd689fc400f7839563dfe02f84d576319ecdaea4969f8650c4d35e874f10f1.png"
-               style="width: 400px; max-width: 100%" />
-					<div style="margin: auto; width: 400px; max-width: 100%">
-						<em>Fig 1 : Visual representation of tetrasticks (no flip + no rotation)</em></div>
-				</div>
-
-				<p>
-					Your task is to fill a <const>5×5</const> board of squares or, more precisely, a <const>6×6</const> grid
-					of edges using the provided tetrasticks. Some tetrasticks may already be glued to the board, so pay
-					close attention to the input.</p>
-				<p>
-					Each turn, you must place one tetrastick on the board. To do so, you need to specify:
-					<ul>
-						<li>The <var>ID</var> of the tetrastick you want to place.</li>
-						<li>Whether you want to <var>flip</var> it horizontally.</li>
-						<li>The number of times you want to <var>rotate</var> it clockwise.</li>
-						<li>The <var>row</var> and <var>column</var> where you want to place it.</li>
-					</ul>
-				</p>	
-				<br>Make sure all pieces fit correctly within the grid!
-
-				<div style="text-align: center; margin: 15px">
-					<img src="https://cdn-games.codingame.com/community/3996809-1740322242597/451a17bc3e846b7130ebca9336906b1121b27c3392508ae213008f436c7bf630.png"
-               style="width: 400px; max-width: 100%" />
-					<div style="margin: auto; width: 400px; max-width: 100%">
-						<em>Fig 2 : Red circle marks correctly shared intersection; red cross incorrect</em></div>
-				</div>
-			</div>
-		</div>
-	</div>
-	<!-- EXAMPLES -->
-	<div class="statement-section statement-examples">
-		<h1>
-			<span class="icon icon-example">&nbsp;</span>
-			<span>Example</span>
-		</h1>
-
-		<div class="statement-examples-text">
-				<p>
-					The <const>R</const> tetrastick as shown in <i>Fig 2</i>, requires you to flip it horizontally (<var>flip</var> = <const>1</const>) and rotate it twice (<var>rotate</var> = <const>2</const>):
-				</p>
-					<div style="text-align: center; margin: 15px">
-					<img src="https://cdn-games.codingame.com/community/3996809-1740322242597/0dfd28a026ce147ac057df8f01f1d789e75705435831124b8fdbda90375a508b.png"
-               style="width: 400px; max-width: 100%" />
-					<div style="margin: auto; width: 400px; max-width: 100%">
-						<em>Fig 3 : Tetrastick transformation</em></div>
-				</div>
-				<p>
-					The bounding box of this tetrastick is <const>2×2</const>. The <var>row</var> and <var>column</var> values represent the position of the top-left corner of the bounding box. In the example above, that would be <var>row</var> = <const>0</const> and <var>column</var> = <const>2</const>.</p>
-					<p>A tetrastick placement is described using its  <var>id</var>, <var>flip</var>, <var>rotate</var>, <var>row</var> and <var>column</var> separated by space. For example: <const>R 1 2 0 2</const>
-				<p>
-				At the beginning of each turn, you will receive a complete description of the board, which consists of the placement descriptions of all already placed tetrasticks. At the end of your turn, you must output the placement description of a single tetrastick.
-				</p>
-			</div>
-		</div>
-
-	<div class="statement-section statement-examples">
-		<h1>
-			<span class="icon icon-example">&nbsp;</span>
-			<span>Additional Info</span>
-		</h1>
-
-		<div class="statement-examples-text">Background image from <a
-				href="https://www.freepik.com/free-photo/red-wooden-christmas-trees-table_3347782.htm#fromView=keyword&page=4&position=41&uuid=b7002b40-73dd-4dd9-b20b-2a32355859ad&query=Wood+Wallpaper+1920x1080">Freepik.com</a><br>
-    Source code in <a href="https://github.com/VizGhar/CG-Tetrasticks/tree/main">my GitHub repo</a><br>
-		Have a look at this <a href="https://www.codingame.com/playgrounds/156252/algorithm-x">great tutorial on Algorithm X</a> by <a href="https://www.codingame.com/profile/2df7157da821f39bbf6b36efae1568142907334">Timinator</a>
+  <div style="color:#7cc576;background-color:rgba( 124 , 197 , 118 , 0.1 );padding:20px;margin-right:15px;margin-left:15px;margin-bottom:10px;text-align:left">
+    <span class="statement-league-alert-content">
+    Let's solve BreakOut! Legendary game made by Atari...
+    </span>
+  </div>
+  <!-- GOAL -->
+  <div class="statement-section statement-goal">
+    <h1>
+      <span class="icon icon-goal">&nbsp;</span>
+      <span>The Goal</span>
+    </h1>
+    <div class="statement-goal-content">
+      <p>Destroy all blocks in all testcases in given amount of turns... 1 turn = 1 bounce of paddle.</p>
     </div>
-		</div>
-
-		<!-- PROTOCOL -->
-		<div class="statement-section statement-protocol">
-			<h1>
-				<span class="icon icon-protocol">&nbsp;</span>
-				<span>Game Input</span>
-			</h1>
-
-			<div class="blk">
-				<div class="title">Input</div>
-				<div class="text">
-					<p>Every turn you will receive current configuration in following format:</p>
-					<p><span class="statement-lineno">Line 1: </span>number <var>m</var> representing amount of
-						remaining tetrasticks to place</p>
-					<p><span class="statement-lineno">Line 2: </span><var>m</var> space separated IDs of remaining
-						tetrasticks</p>
-					<p><span class="statement-lineno">Line 3: </span>number <var>n</var> representing amount of
-						tetrasticks already placed on board</p>
-					<p><span class="statement-lineno">Following <var>n</var> lines: </span> already placed tetrasticks as described in the example. For example: <const>R 1 2 0 2</const> (<var>id</var>, <var>flip</var>, <var>rotate</var>, <var>row</var>, <var>column</var>)
-					</p>
-					
-				</div>
-			</div>
-
-			<!-- Protocol block -->
-			<div class="blk">
-				<div class="title">Output</div>
-				<div class="text">
-					<p><span class="statement-lineno">1 Line: </span>
-						<const>5</const> Space separated values <var>id</var>, <var>flip</var>, <var>rotations</var>,
-						<var>row</var>, <var>column</var></p>
-					<var>id</var> of tetrastick<br>
-					<var>flip</var>
-					<const>1</const> if tetrastick should be flipped horizontally, <const>0</const> otherwise<br>
-					<var>rotations</var> from interval <const>
-						<0 ; 3>
-					</const> - count of clockwise rotations<br>
-					<var>row</var> from interval <const>
-						<0 ; 5>
-					</const> - vertical placement<br>
-					<var>column</var> from interval <const>
-						<0 ; 5>
-					</const> - horizontal placement<br>
-        For example <const>H 1 2 0 3</const> will flip (<const>1</const>) horizontally h-shaped tetrastick (<const>H</const>) and rotate it <const>2</const> times clockwise. After that the tetrastick will be placed
-					on <const>0</const>th row and <const>3</const>rd column.
-					<br>
+  </div>
+  <div class="statement-section statement-rules">
+    <h1>
+      <span class="icon icon-rules">&nbsp;</span>
+      <span>Rules</span>
+    </h1>
+    <div>
+      <div class="statement-rules-content">
+        <p>
+          Blah blah:
+        <ul>
+          <li>Screen - <const>640×480</const></li>
+          <li>Coordinates <const>[0,0]</const> - top-left corner</li>
+          <li>Blocks - <const>80</const> possible placements</li>
+          <li>Block size - <const>64×32</const></li>
+          <li>Ball size - ball is for simplicity square with dimensions - <const>16×16</const> <strong>this will probably change to 17x17 so center of ball can be clearly described</strong></li>
+          <li>Ball angle - always between <const>10,70</const> or <const>-70,-10</const> degrees (including)</li>
+          <li>Paddle size - <const>64×16</const></li>
+          <li>Paddle <var>Y</var> position - <const>448</const> (screen height -<const>32</const>)
+          </li>
+        </ul>
+        </p>
+        <div style="text-align: center; margin: 15px">
+          <img src="https://cdn-games.codingame.com/community/3996809-1741549849994/e4eb32b1f79535b65e3588a7d522a5892c7b3382a820549fa380b42214d0b03a.jpg"
+            style="width: 400px; max-width: 100%" />
+          <div style="margin: auto; width: 400px; max-width: 100%">
+            <em>Dimensions of all game components</em>
+          </div>
+        </div>
+        <p>
+          Bouncing:<br>
+        <ul>
+					<li>Angle <const>0</const> points straight up, <const>+20</const> is <const>20</const> degrees clockwise, <const>-30</const> is <const>30</const> degrees counterclockwise</li>
+          <li>Of walls - standard</li>
+          <li>Of blocks - standard, if two blocks are hit at the same time both are removed</li>
+          <li>Of paddle - paddle is composed of 8 sections each changes ball angle by given amount of degrees <strong>I'd like to keep it this way, but maybe more granular changes will be necessary</strong></li>
+          <li>After every bounce x and y coordinate of a ball are rounded to closest int <strong>This will most probably change to Bresenham algorithm to prevent most rounding errors</strong></li>
+        </ul>
+        Exceptions
+        <ul>
+          <li>Ball angle was >= 10 and now is between -10;10 = adjust to -10</li>
+          <li>Ball angle was <= -10 and now is between -10;10 = adjust to 10</li>
+          <li>Ball angle is < -70 = adjust to -70</li>
+          <li>Ball angle is > 70 = adjust to 70</li>
+        </ul>
+        </p>
+        <div style="text-align: center; margin: 15px">
+          <img src="https://cdn-games.codingame.com/community/3996809-1741549849994/9a829ceadc7af988430c4ff97616c9e68ba60e06f01655b2edfea6706ea36bfd.jpg"
+            style="width: 400px; max-width: 100%" />
+          <div style="margin: auto; width: 400px; max-width: 100%">
+            <em>
+              8 sections of paddle (each has length of 
+              <const>8</const>
+              pixels)
+            </em>
+          </div>
+        </div>
+        <div class="statement-victory-conditions">
+          <div class="icon victory"></div>
+          <div class="blk">
+            <div class="title">Victory Conditions</div>
+            <div class="text">
+              <ul style="padding-bottom:0">
+                <li>Destroy all blocks within a test-dependent turn limit.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="statement-lose-conditions">
+          <div class="icon victory"></div>
+          <div class="blk">
+            <div class="title">Lose Conditions</div>
+            <div class="text">
+              <ul style="padding-bottom:0">
+                <li>Number of turns exceeds test's turn limit.</li>
+                <li>The ball exists screen.</li>
+                <li>Incorrect output format and/or value.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
-				</div>
-
-				<!-- Protocol block -->
-				<div class="blk">
-					<div class="title">Constraints</div>
-					<div class="text">
-						<br>Allotted response time to output is ≤ <const>5s</const> in first turn and <const>50ms
-						</const> in remaining turns</div>
-				</div>
-			</div>
-		</div>
+    </div>
+  </div>
+  <div class="statement-section statement-examples">
+    <h1>
+      <span class="icon icon-example">&nbsp;</span>
+      <span>Additional Info</span>
+    </h1>
+    <div class="statement-examples-text">Assets from <a href="https://schwarnhild.itch.io/brick-breaker-asset-pack">itch.io</a><br>
+      Source code in <a href="https://github.com/VizGhar/CG-BreakOut">my GitHub repo</a><br>
+    </div>
+  </div>
+  <!-- PROTOCOL -->
+  <div class="statement-section statement-protocol">
+    <h1>
+      <span class="icon icon-protocol">&nbsp;</span>
+      <span>Game Input</span>
+    </h1>
+    <div class="blk">
+      <div class="title">Input</div>
+      <div class="text">
+        <p>Every turn you will receive current configuration in following format:</p>
+        <p>
+          <span class="statement-lineno">Line 1: </span><var>remainingTurns</var> or bounces of the paddle
+        </p>
+        <p>
+          <span class="statement-lineno">Line 2: </span><var>paddleX</var> x-coordinate of paddle (<var>paddleY</var> coordinate is always 
+          <const>448</const>
+          )
+        </p>
+        <p>
+          <span class="statement-lineno">Line 3: </span>space separated <var>ballX</var> and <var>ballAngle</var> (<var>ballY</var> coordinate is always 
+          <const>432</const>; angle<const>0</const>pointing up)
+        </p>
+        <p><span class="statement-lineno">Line 4: </span>number <var>n</var> representing amount of blocks to destroy</p>
+        <p>
+          <span class="statement-lineno">Following <var>n</var> lines: </span> block description. For example: 
+          <const>15 2 64 160</const>
+          (<var>blockId</var>, <var>blockHp</var>, <var>blockX</var>, <var>blockY</var>)
+        </p>
+      </div>
+    </div>
+    <!-- Protocol block -->
+    <div class="blk">
+      <div class="title">Output</div>
+      <div class="text">
+        <p>
+          <span class="statement-lineno">1 Line: </span> required <var>paddleX</var> at the end of this turn
+        </p>
+      </div>
+    </div>
+    <!-- Protocol block -->
+    <div class="blk">
+      <div class="title">Constraints</div>
+      <div class="text">
+        <const>0</const> ≤ <var>paddleX</var> ≤ <const>576</const><br>
+        <const>0</const> ≤ <var>blockX</var> ≤ <const>576</const>; <var>blockX</var> is divisible by <const>64</const><br>
+        <const>0</const> ≤ <var>blockY</var> ≤ <const>256</const>; <var>blockY</var> is divisible by <const>32</const><br>
+        <const>10</const> ≤ abs(<var>ballAngle</var>) ≤ <const>70</const><br>
+        <var>remainingTurns</var> ≤ <const>200</const><br>
+        Allotted response time to output is ≤ <const>2s</const>in first turn and <const>100ms</const>in remaining turns
+      </div>
+    </div>
+  </div>
+</div>

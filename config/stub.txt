@@ -1,8 +1,10 @@
 gameloop
-read i:int
+read remainingTurns:int
+read paddleX:int
+read ballX:int ballAngle:int
+read n:int
+loop n read id:int blockX:int blockY:int
+write 300
 
 STATEMENT
 Let's Break Out
-
-INPUT
-i: number

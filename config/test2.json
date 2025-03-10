@@ -3,7 +3,7 @@
     "1": "Just wait",
     "2": "Just wait"
   },
-  "testIn": "RED\nGREEN\n-10\n25-RED-1",
+  "testIn": "200\nRED\nGREEN\n-10\n25-RED-1",
   "isTest": "false",
   "isValidator": "true"
 }
