@@ -3,7 +3,7 @@ read remainingTurns:int
 read paddleX:int
 read ballX:int ballAngle:int
 read n:int
-loop n read id:int blockX:int blockY:int
+loop n read blockHp:int blockX:int blockY:int
 write 300
 
 STATEMENT

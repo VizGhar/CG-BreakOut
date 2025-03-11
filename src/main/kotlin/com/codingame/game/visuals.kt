@@ -1,5 +1,6 @@
 package com.codingame.game
 
+import com.codingame.gameengine.core.SoloGameManager
 import com.codingame.gameengine.module.entities.GraphicEntityModule
 import com.codingame.gameengine.module.entities.Group
 import com.codingame.gameengine.module.tooltip.TooltipModule
@@ -12,7 +13,7 @@ private const val heightInBlocks = 15
 private const val boardWidth = blockWidth * widthInBlocks
 private const val boardHeight = blockHeight * heightInBlocks
 
-private val brickMap = mutableMapOf<Int, Group>()
+private val brickMap = mutableMapOf<Pair<Int, Int>, Group>()
 private lateinit var paddleSprite: Group
 private lateinit var ballSprite: Group
 private lateinit var game: Group
@@ -34,6 +35,10 @@ private fun GraphicEntityModule.breakoutSprite(name: String, color: BreakoutColo
     add(createSprite().setImage("${name}_dark.png").setTint(color.dark))
 }
 
+private fun GraphicEntityModule.replaceBrick(id: Int, hardness: Int, d: Double) {
+    for (i in hardness + 1..3) { brickMap[id to i]?.setVisible(false)?.also { commitEntityState(d, it) } }
+}
+
 private fun GraphicEntityModule.brick(hardness: Int, color: BreakoutColor): Group =
     breakoutSprite("brick_$hardness", color)
 
@@ -43,38 +48,32 @@ private fun GraphicEntityModule.paddle(color: BreakoutColor): Group =
 private fun GraphicEntityModule.ball(color: BreakoutColor): Group =
     breakoutSprite("ball", color).also { ballSprite = it }
 
-fun GraphicEntityModule.update(sim: List<SimulationPoint>, output: Int) {
-    val remove = brickMap.filter { (brickId, _) -> blocks.none { it.id == brickId } }
-    for ((brickId, sprite) in remove) {
-        sprite.setVisible(false)
-        brickMap.remove(brickId)
-    }
-
-    if (output != -1) {
-        paddlePosition = paddlePosition.copy(x = output)
-    }
+fun GraphicEntityModule.update(
+    gameManager: SoloGameManager<Player>?,
+    simulation: SimulationMetadata?
+) {
 
     paddleSprite
         .setY(paddlePosition.y * M)
         .setX(paddlePosition.x * M)
 
-    if (sim.isNotEmpty()) {
-        for (a in sim) {
-            ballSprite.setX(a.position.x * M).setY(a.position.y * M)
-            commitWorldState(0.99)
-            try {
-                brickMap[a.hitBlock!!.id]?.setVisible(false)
-                game.add(
-                    brick(1, BreakoutColor.GREEN).setX(brickMap[a.hitBlock!!.id]!!.x)
-                        .setY(brickMap[a.hitBlock!!.id]!!.y)
-                )
-            } catch (e: Exception) {}
+    if (simulation != null) {
+        val (sim, totalDistance) = simulation
+        gameManager?.frameDuration = totalDistance * 5
+        var traveledDistance = 0
+        for (simulationPoint in sim) {
+            traveledDistance += simulationPoint.distance
+            val timeEnd = traveledDistance.toDouble() / totalDistance - 0.001
+            ballSprite.setX(simulationPoint.position.x * M).setY(simulationPoint.position.y * M)
+            simulationPoint.hitBlock.forEach { block -> if (block is Obstacle.Block) replaceBrick(block.id, block.lives, timeEnd) }
+            commitEntityState(timeEnd, ballSprite)
         }
     } else {
         ballSprite
-            .setY(ballPosition.y * M)
             .setX(ballPosition.x * M)
+            .setY(ballPosition.y * M)
     }
+    commitEntityState(1.0, paddleSprite)
 }
 
 fun GraphicEntityModule.initGameVisual(
@@ -93,17 +92,19 @@ fun GraphicEntityModule.initGameVisual(
 
     createGroup().setY(boardY).setX(boardX).apply {
         add(*blocks.map { obstacle ->
-            brick(obstacle.lives, obstacle.color)
-                .setX(obstacle.x * M)
-                .setY(obstacle.y * M)
-                .also {
-                    brickMap[obstacle.id] = it
-                    tooltips.setTooltipText(it, "${obstacle.id} - ${obstacle.x} - ${obstacle.y}")
-                } }.toTypedArray()
+            (1..obstacle.lives).map { h ->
+                brick(h, obstacle.color)
+                    .setX(obstacle.x * M)
+                    .setY(obstacle.y * M)
+                    .also {
+                        brickMap[obstacle.id to h] = it
+                        tooltips.setTooltipText(it, "${obstacle.id} - ${obstacle.x} - ${obstacle.y}")
+                    } }
+            }.flatten().toTypedArray()
         )
         add(paddle(paddleColor))
         add(ball(ballColor))
-        update(emptyList(), -1)
+        update(null, null)
     }.also { game = it }
 }
 
@@ -114,8 +115,7 @@ fun GraphicEntityModule.initGameBackground(
     createGroup().apply {
         // TODO: tint not working?
         add(createRectangle().setFillColor(0x000000).setWidth(world.width).setHeight(world.height))
-        add(
-        createTilingSprite().setBaseHeight(384).setBaseWidth(world.width).setTint(color).setImage("background.png").also {
+        add(createTilingSprite().setBaseHeight(384).setBaseWidth(world.width).setTint(color).setImage("background.png").also {
             if (flip) it.setY(world.height).setScaleY(-1.0)
         })
     }

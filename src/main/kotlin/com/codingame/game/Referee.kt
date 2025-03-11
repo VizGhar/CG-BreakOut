@@ -24,49 +24,50 @@ class Referee : AbstractReferee() {
         remainingTurns = gameManager.testCaseInput[0].toInt()
         gameManager.firstTurnMaxTime = 2000
         gameManager.turnMaxTime = 100
-        gameManager.maxTurns = remainingTurns
+        gameManager.maxTurns = 200
         ballAngle = gameManager.testCaseInput[3].toInt()
         blocks = gameManager.testCaseInput[4].split(";").map {
             val (id, color, lives) = it.split("-")
-            Block(
+            Obstacle.Block(
                 id = id.toInt(),
                 color = BreakoutColor.valueOf(color),
                 lives = lives.toInt()
             )
         }
-        initVisual(
+        graphicEntityModule.initGameBackground(flip = true, color = 0XFFFFFF)
+        graphicEntityModule.initGameVisual(
             BreakoutColor.valueOf(gameManager.testCaseInput[1]),
-            BreakoutColor.valueOf(gameManager.testCaseInput[2])
+            BreakoutColor.valueOf(gameManager.testCaseInput[2]), tooltipModule
         )
     }
 
     override fun gameTurn(turn: Int) {
-        // remainingTurns
         gameManager.player.sendInputLine("$remainingTurns")
         gameManager.player.sendInputLine("${paddlePosition.x}")
         gameManager.player.sendInputLine("${ballPosition.x} $ballAngle")
         gameManager.player.sendInputLine("${blocks.size}")
-        blocks.forEach { gameManager.player.sendInputLine("${it.id} ${it.lives} ${it.x} ${it.y}") }
+        blocks.forEach { gameManager.player.sendInputLine("${it.lives} ${it.x} ${it.y}") }
         try {
             gameManager.player.execute()
-            val output = gameManager.player.outputs[0].toInt()
-            val sim = sim()
-            graphicEntityModule.update(sim, output)
+            val output = gameManager.player.outputs[0].toIntOrNull()
+            if (output == null || output !in 0 ..< 640 - 64) {
+                gameManager.loseGame("Moving paddle outside of game")
+                return
+            }
+            paddlePosition = paddlePosition.copy(x = output)
+            val simulation = simulateGame()
+            graphicEntityModule.update(gameManager, simulation)
+            if (blocks.all { it.lives <= 0 }) { gameManager.winGame("Congratulations"); return }
+            if (!simulation.continueGame) { gameManager.loseGame("Ball escaped"); return }
         } catch (e: AbstractPlayer.TimeoutException) {
             gameManager.loseGame("Timeout")
             return
         } catch (e: Exception) {
-            e.printStackTrace()
             gameManager.loseGame("Invalid player output")
             return
         }
-        if (turn == 2) {
-            gameManager.winGame("Congrats!")
+        if (remainingTurns-- == 0) {
+            gameManager.loseGame("You didn't breakout in time")
         }
-    }
-
-    private fun initVisual(paddleColor: BreakoutColor, ballColor: BreakoutColor) {
-        graphicEntityModule.initGameBackground(flip = true, color = 0XFFFFFF)
-        graphicEntityModule.initGameVisual(paddleColor, ballColor, tooltipModule)
     }
 }

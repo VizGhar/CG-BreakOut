@@ -1,8 +1,13 @@
 <div id="statement_back" class="statement_back" style="display:none"></div>
 <div class="statement-body">
+  <div style="color:#c57c76;background-color:rgba( 197 , 124 , 118 , 0.3 );padding:20px;margin-right:15px;margin-left:15px;margin-bottom:10px;text-align:left">
+    <span class="statement-league-alert-content">
+    <strong>Work on statement and code still in progress - comment only core idea and mechanics of the game please!!!</strong>
+    </span>
+  </div>
   <div style="color:#7cc576;background-color:rgba( 124 , 197 , 118 , 0.1 );padding:20px;margin-right:15px;margin-left:15px;margin-bottom:10px;text-align:left">
     <span class="statement-league-alert-content">
-    Let's solve BreakOut! Legendary game made by Atari...
+    Let's solve BreakOut! Legendary game made by Atari
     </span>
   </div>
   <!-- GOAL -->
@@ -12,7 +17,7 @@
       <span>The Goal</span>
     </h1>
     <div class="statement-goal-content">
-      <p>Destroy all blocks in all testcases in given amount of turns... 1 turn = 1 bounce of paddle.</p>
+      <p>BreakOut is game... [very little bit of history and glossary]. Your task is to destroy blocks... in given amount of turns... 1 turn = 1 bounce of paddle.</p>
     </div>
   </div>
   <div class="statement-section statement-rules">
@@ -23,13 +28,13 @@
     <div>
       <div class="statement-rules-content">
         <p>
-          Blah blah:
+          [rules intro - more descriptive bullets]:
         <ul>
           <li>Screen - <const>640×480</const></li>
           <li>Coordinates <const>[0,0]</const> - top-left corner</li>
-          <li>Blocks - <const>80</const> possible placements</li>
+          <li>Blocks - <const>80</const> possible placements as shown in image below</li>
           <li>Block size - <const>64×32</const></li>
-          <li>Ball size - ball is for simplicity square with dimensions - <const>16×16</const> <strong>this will probably change to 17x17 so center of ball can be clearly described</strong></li>
+          <li>Ball size - ball is in game represented as square with dimensions - <const>16×16</const></li>
           <li>Ball angle - always between <const>10,70</const> or <const>-70,-10</const> degrees (including)</li>
           <li>Paddle size - <const>64×16</const></li>
           <li>Paddle <var>Y</var> position - <const>448</const> (screen height -<const>32</const>)
@@ -44,13 +49,13 @@
           </div>
         </div>
         <p>
-          Bouncing:<br>
+          Bouncing [more descriptive bullets]:<br>
         <ul>
-					<li>Angle <const>0</const> points straight up, <const>+20</const> is <const>20</const> degrees clockwise, <const>-30</const> is <const>30</const> degrees counterclockwise</li>
+					<li>Angle <const>0</const> points straight up; <const>+</const><var>angle</var> is <var>angle</var> degrees clockwise, <const>-</const><var>angle</var> is <var>angle</var> degrees counterclockwise</li>
           <li>Of walls - standard</li>
-          <li>Of blocks - standard, if two blocks are hit at the same time both are removed</li>
-          <li>Of paddle - paddle is composed of 8 sections each changes ball angle by given amount of degrees <strong>I'd like to keep it this way, but maybe more granular changes will be necessary</strong></li>
-          <li>After every bounce x and y coordinate of a ball are rounded to closest int <strong>This will most probably change to Bresenham algorithm to prevent most rounding errors</strong></li>
+          <li>Of blocks - standard, if two blocks are hit at the same time both are removed <strong>any coments on this?</strong></li>
+          <li>Of paddle - paddle is composed of 8 sections each changes ball angle by given amount of degrees <strong>can hit 2 sections equally = take middle value? + maybe replace 8 sections with 64 + revert direction if corner hit?</strong></li>
+          <li>See <em>Expert rules</em> to understand ball trajectory</li>
         </ul>
         Exceptions
         <ul>
@@ -89,7 +94,7 @@
             <div class="text">
               <ul style="padding-bottom:0">
                 <li>Number of turns exceeds test's turn limit.</li>
-                <li>The ball exists screen.</li>
+                <li>The ball leaves the screen.</li>
                 <li>Incorrect output format and/or value.</li>
               </ul>
             </div>
@@ -98,6 +103,25 @@
       </div>
     </div>
   </div>
+  <div class="statement-section statement-examples">
+    <h1>
+      <span class="icon icon-expertrules">&nbsp;</span>
+      <span>Expert rules</span>
+    </h1>
+    <div class="statement-examples-text">
+      <p>
+        Trajectory computation:<br>
+        <ul>
+          <li>Take top-left corner of ball as <var>start</var> point</li>
+          <li>Compute <var>target</var> point at the edge of the board based on <var>start</var> and <var>ballAngle</var> (<var>target</var> is rounded to closest int)</li>
+          <li>Draw Bresenham line from <var>start</var> to <var>target</var>
+          <li>If projection of ball hits obstacle - take previous point on Bresenham line, place the ball there and compute new ballAngle</li>
+          <li>If ball hits the block right to corner, from top side or from the bottom side <var>newBallAngle</var><const> = 180 - </const><var>ballAngle</var>; <const>-</const><var>ballAngle</var> otherwise</li>
+        </ul>
+      </p>
+    </div>
+  </div>
+
   <div class="statement-section statement-examples">
     <h1>
       <span class="icon icon-example">&nbsp;</span>
@@ -132,8 +156,8 @@
         <p><span class="statement-lineno">Line 4: </span>number <var>n</var> representing amount of blocks to destroy</p>
         <p>
           <span class="statement-lineno">Following <var>n</var> lines: </span> block description. For example: 
-          <const>15 2 64 160</const>
-          (<var>blockId</var>, <var>blockHp</var>, <var>blockX</var>, <var>blockY</var>)
+          <const>2 64 160</const>
+          (<var>blockHp</var>, <var>blockX</var>, <var>blockY</var>)
         </p>
       </div>
     </div>
@@ -142,7 +166,7 @@
       <div class="title">Output</div>
       <div class="text">
         <p>
-          <span class="statement-lineno">1 Line: </span> required <var>paddleX</var> at the end of this turn
+          <span class="statement-lineno">1 Line: </span> required <var>paddleX</var> at the end of this turn (left side of paddle)
         </p>
       </div>
     </div>
@@ -154,6 +178,7 @@
         <const>0</const> ≤ <var>blockX</var> ≤ <const>576</const>; <var>blockX</var> is divisible by <const>64</const><br>
         <const>0</const> ≤ <var>blockY</var> ≤ <const>256</const>; <var>blockY</var> is divisible by <const>32</const><br>
         <const>10</const> ≤ abs(<var>ballAngle</var>) ≤ <const>70</const><br>
+        <var>ballAngle</var> is always divisible by <const>10</const><br>
         <var>remainingTurns</var> ≤ <const>200</const><br>
         Allotted response time to output is ≤ <const>2s</const>in first turn and <const>100ms</const>in remaining turns
       </div>

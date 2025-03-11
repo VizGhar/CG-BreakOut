@@ -1,23 +1,35 @@
 package com.codingame.game
 
-import kotlin.math.ceil
-import kotlin.math.cos
-import kotlin.math.roundToInt
-import kotlin.math.sin
+import kotlin.math.*
 
+private const val screenHeight = 480
+private const val screenWidth = 640
 private const val maxAbsBallAngle = 70
 private const val minAbsBallAngle = 10
 private const val paddleWidth = 64
 private const val paddleHeight = 32
-private const val ballWidth = 17
-private const val ballHeight = 17
+private const val ballWidth = 16
+private const val ballHeight = 16
 
-var paddlePosition = Position((640 - 64) / 2, 480 - 32)
-var ballPosition = Position((640 - 17) / 2, 480 - 32 - 17)
+var paddlePosition = Position((screenWidth - paddleWidth) / 2, screenHeight - paddleHeight)
+var ballPosition = Position((screenWidth - ballWidth) / 2, screenHeight - paddleHeight - ballHeight - 1)
 var ballAngle = 0
-var blocks = listOf<Block>()
+var blocks = listOf<Obstacle.Block>()
 
-private val gameBoard = Block(-1, BreakoutColor.RED, -1, 0, 0, 640, 480)
+private val screenBlock = Obstacle.Screen
+private val paddleBlock get() = Obstacle.Paddle(paddlePosition.x, paddlePosition.y)
+private val obstacles get() = blocks + screenBlock + paddleBlock
+
+private val precomputedHitBoxes : Map<Position, List<Position>> =
+    (0..screenWidth)
+        .map { x -> (0..screenHeight).map { y -> Position(x, y) to listOf(
+            Position(x, y),
+            Position(x + ballWidth, y),
+            Position(x, y + ballHeight),
+            Position(x + ballWidth, y + ballHeight)
+        ) } }
+        .flatten()
+        .toMap()
 
 private fun changeBallDirection(by: Int) {
     ballAngle = when {
@@ -31,83 +43,121 @@ private fun changeBallDirection(by: Int) {
 
 data class Position(val x: Int, val y: Int)
 
-data class Block(
-    val id: Int,
-    val color: BreakoutColor,
-    var lives: Int = 3,
-    val x: Int = (id % 10) * 64,
-    val y: Int = (id / 10) * 32,
-    val width: Int = 64,
-    val height: Int = 32
-) {
-    val edges get() = listOf(
-        Pair(x, y) to Pair(x + width, y),
-        Pair(x, y) to Pair(x, y + height),
-        Pair(x + width, y) to Pair(x + width, y + height),
-        Pair(x, y + height) to Pair(x + width, y + height)
-    )
+sealed class Obstacle(val x: Int, val y: Int, val width: Int, val height: Int) {
+    class Block(val id: Int, val color: BreakoutColor, var lives: Int = 3,
+                x: Int = (id % 10) * 64, y: Int = (id / 10) * 32) : Obstacle(x, y, 64, 32)
+    data object Screen : Obstacle(0, 0, screenWidth, screenHeight)
+    class Paddle(x: Int, y: Int) : Obstacle(x, y, paddleWidth, paddleHeight)
 }
 
-data class SimulationPoint(val position: Position, val hitBlock: Block?)
+data class SimulationPoint(
+    val position: Position,
+    val hitBlock: List<Obstacle>,
+    val distance: Int
+)
 
-fun sim(): List<SimulationPoint> {
+private fun findCollisionWithBorder(startX: Int, startY: Int, angle: Int): Position {
+    val rad = Math.toRadians(angle.toDouble())
+    val dx = sin(rad)
+    val dy = -cos(rad)
 
-    val result = mutableListOf<SimulationPoint>()
-    val ballCorners = listOf(0 to 0, ballWidth to 0, 0 to ballHeight, ballWidth to ballHeight)
+    val tRight = if (dx > 0) (screenWidth - startX) / dx else Double.POSITIVE_INFINITY
+    val tLeft = if (dx < 0) -startX / dx else Double.POSITIVE_INFINITY
+    val tBottom = if (dy > 0) (screenHeight - startY) / dy else Double.POSITIVE_INFINITY
+    val tTop = if (dy < 0) -startY / dy else Double.POSITIVE_INFINITY
 
-    var x = ballPosition.x
-    var y = ballPosition.y
-    var angle = ballAngle
+    val t = minOf(tRight, tLeft, tBottom, tTop)
+    return Position((startX + dx * t).roundToInt(), (startY + dy * t).roundToInt())
+}
+
+private fun bresenhamLine(from: Position, to: Position): List<Position> {
+    val points = mutableListOf<Position>()
+
+    var x = from.x
+    var y = from.y
+    val dx = abs(to.x - from.x)
+    val dy = abs(to.y - from.y)
+    val sx = if (from.x < to.x) 1 else -1
+    val sy = if (from.y < to.y) 1 else -1
+    var err = dx - dy
 
     while (true) {
-        val rad = Math.toRadians(angle.toDouble())
-        val dx = sin(rad)
-        val dy = -cos(rad)
-        var tMin = Double.POSITIVE_INFINITY
-        var hit: Block? = null
-        var hitPoint: Position? = null
-        var reflectedAngle: Int? = null
-
-        for (block in blocks + gameBoard) {
-            if (block.lives == 0 || result.lastOrNull()?.hitBlock?.id?.let { it == block.id } == true) continue
-            for ((ox, oy) in ballCorners) {
-                val startX = x + ox
-                val startY = y + oy
-
-                for (edge in block.edges) {
-                    val (x1, y1) = edge.first
-                    val (x2, y2) = edge.second
-
-                    val denom = (x2 - x1) * dy - (y2 - y1) * dx
-                    val t = ((startX - x1) * dy - (startY - y1) * dx) / denom
-                    val u = ((startX - x1) * (y2 - y1) - (startY - y1) * (x2 - x1)) / denom
-
-                    if (t in 0.0..1.0 && u > 0 && u < tMin) {
-                        tMin = u
-                        hit = block
-                        hitPoint = Position((startX + u * dx).roundToInt(), ceil(startY + u * dy).roundToInt())
-
-                        reflectedAngle = when {
-                            hitPoint.y == block.y || hitPoint.y == block.y + block.height -> 180 - ballAngle
-                            hitPoint.x == block.x || hitPoint.x == block.x + block.width -> -ballAngle
-                            else -> ballAngle
-                        }
-                    }
-                }
-            }
+        points.add(Position(x, y))
+        if (x == to.x && y == to.y) break
+        val e2 = 2 * err
+        if (e2 > -dy) {
+            err -= dy
+            x += sx
         }
-
-        if (hit == null || hitPoint == null || reflectedAngle == null) break
-
-        result += SimulationPoint(hitPoint, hit)
-        hit.lives--
-        ballPosition = hitPoint
-        ballAngle = reflectedAngle
-
-        x = hitPoint.x
-        y = hitPoint.y
-        angle = reflectedAngle
+        if (e2 < dx) {
+            err += dx
+            y += sy
+        }
     }
-    return result
+
+    return points
+}
+
+data class SimulationMetadata(
+    val simulationPoints: List<SimulationPoint>,
+    val totalDistance: Int,
+    val continueGame: Boolean
+)
+
+fun simulateGame(): SimulationMetadata {
+    val simulation = mutableListOf<SimulationPoint>()
+    var totalDistance = 0
+    do {
+        val target = findCollisionWithBorder(ballPosition.x, ballPosition.y, ballAngle)
+        val trajectory = bresenhamLine(ballPosition, target)
+        for (i in 1..<trajectory.size) {
+            val point = trajectory[i]
+            val previousPoint = trajectory[i - 1]
+            val hitPoints = precomputedHitBoxes[point] ?: throw IllegalStateException("no hitpoints at $point")
+
+            val hitCandidates = obstacles.filter { obstacle ->
+                if (obstacle is Obstacle.Block && obstacle.lives <= 0) return@filter false
+                val blockHit = hitPoints.firstOrNull {
+                    (it.x == obstacle.x && it.y in obstacle.y..obstacle.y + obstacle.height) ||
+                            (it.x == obstacle.x + obstacle.width && it.y in obstacle.y..obstacle.y + obstacle.height) ||
+                            (it.y == obstacle.y && it.x in obstacle.x..obstacle.x + obstacle.width) ||
+                            (it.y == obstacle.y + obstacle.height && it.x in obstacle.x..obstacle.x + obstacle.width)
+                }
+                blockHit != null
+            }
+
+            if (hitCandidates.isEmpty()) continue
+
+            for (obstacle in hitCandidates) { if (obstacle is Obstacle.Block) { obstacle.lives-- } }
+            simulation += SimulationPoint(previousPoint, hitCandidates, i)
+            totalDistance += i
+            ballPosition = previousPoint
+
+            val hitsX = hitCandidates.count { block -> hitPoints.any { it.x == block.x || it.x == block.x + block.width } }
+            val hitsY = hitCandidates.count { block -> hitPoints.any { it.y == block.y || it.y == block.y + block.height } }
+
+            ballAngle = when {
+                hitsX == 1 && hitsY == 1 -> 180 - ballAngle // standard bounce from hitting or scratching corner of brick
+                hitsX == 0 -> 180 - ballAngle               // standard hit from bottom / up
+                hitsY == 0 -> -ballAngle                    // standard hit from left / right
+                else -> -(180 - ballAngle)                  // hitting corner composed of 2 (or 3) blocks
+            }
+
+            break
+        }
+    } while (
+        blocks.any { it.lives > 0 } &&
+        simulation.last().hitBlock.none { it is Obstacle.Paddle } &&    // paddle hit
+        simulation.last().position.y != screenHeight - ballHeight - 1   // bottom of the screen hit
+    )
+
+    if (simulation.last().hitBlock.any { it is Obstacle.Paddle }) {
+        // TODO: adjust angle when paddle hit
+        changeBallDirection(0)
+    }
+
+    val continueGame = simulation.last().hitBlock.any { it is Obstacle.Paddle }
+
+    return SimulationMetadata(simulation, totalDistance, continueGame)
 }
 
