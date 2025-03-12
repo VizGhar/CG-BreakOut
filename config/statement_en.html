@@ -2,12 +2,16 @@
 <div class="statement-body">
   <div style="color:#c57c76;background-color:rgba( 197 , 124 , 118 , 0.3 );padding:20px;margin-right:15px;margin-left:15px;margin-bottom:10px;text-align:left">
     <span class="statement-league-alert-content">
-    <strong>Work on statement and code still in progress - comment only core idea and mechanics of the game please!!!</strong>
+    <strong>WORK IN PROGRESS<br>TODOs:<ul>
+      <li>bouncing of paddle's sides / or ignoring it</li>
+      <li>testcases for edge-cases first</li>
+      <li>normal testcases</li>
+      </strong>
     </span>
   </div>
   <div style="color:#7cc576;background-color:rgba( 124 , 197 , 118 , 0.1 );padding:20px;margin-right:15px;margin-left:15px;margin-bottom:10px;text-align:left">
     <span class="statement-league-alert-content">
-    Let's solve BreakOut! Legendary game made by Atari
+    Let's solve <strong>BreakOut</strong>! Legendary game made by Atari
     </span>
   </div>
   <!-- GOAL -->
@@ -17,29 +21,28 @@
       <span>The Goal</span>
     </h1>
     <div class="statement-goal-content">
-      <p>BreakOut is game... [very little bit of history and glossary]. Your task is to destroy bricks... in given amount of turns... 1 turn = 1 bounce of paddle.</p>
+      <p>This game is a modern take on the classic <strong>Breakout</strong>. Your mission is to control a <strong>paddle</strong> that moves horizontally to keep the <strong>ball</strong> in play. Each time the ball collides with a <strong>brick</strong>, the brick takes damage and may break completely. To win, you must destroy all bricks on the screen within a limited number of turns — where each <strong>turn</strong> is counted as a single <strong>bounce</strong> off the paddle.</p>
     </div>
   </div>
   <div class="statement-section statement-rules">
     <h1>
       <span class="icon icon-rules">&nbsp;</span>
-      <span>Rules</span>
+      <span>Game Screen & Components</span>
     </h1>
     <div>
       <div class="statement-rules-content">
         <p>
-          [rules intro - more descriptive bullets]:
-        <ul>
-          <li>Screen - <const>640×480</const></li>
-          <li>Coordinates <const>[0,0]</const> - top-left corner</li>
-          <li>Bricks - <const>80</const> possible placements as shown in image below</li>
-          <li>Brick size - <const>64×32</const></li>
-          <li>Ball size - ball is in game represented as square with dimensions - <const>16×16</const></li>
-          <li>Ball angle - always between <const>10,70</const> or <const>-70,-10</const> degrees (including)</li>
-          <li>Paddle size - <const>64×16</const></li>
-          <li>Paddle <var>Y</var> position - <const>448</const> (screen height -<const>32</const>)
-          </li>
-        </ul>
+          Game Screen & Components:
+          <ul>
+            <li><em>Screen size</em>: <const>640×480</const> pixels.</li>
+            <li><em>Coordinate system</em>: <const>(0,0)</const> is the top-left corner.</li>
+            <li><em>Bricks</em>: <const>80</const> possible placements (see image below).</li>
+            <li><em>Brick size</em>: <const>64×32</const> pixels.</li>
+            <li><em>Ball size</em>: Represented as a <const>16×16</const> square.</li>
+            <li><em>Ball angle</em>: Always between <const>10°</const> and <const>70°</const> or <const>-70°</const> and <const>-10°</const>.</li>
+            <li><em>Paddle size</em>: <const>64×16</const> pixels.</li>
+            <li><em>Paddle position</em>: Fixed at <var>Y</var> = <const>448</const>.</li>
+          </ul>
         </p>
         <div style="text-align: center; margin: 15px">
           <img src="https://cdn-games.codingame.com/community/3996809-1741549849994/e4eb32b1f79535b65e3588a7d522a5892c7b3382a820549fa380b42214d0b03a.jpg"
@@ -48,22 +51,42 @@
             <em>Dimensions of all game components</em>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+  <div class="statement-section statement-rules">
+    <h1>
+      <span class="icon icon-rules">&nbsp;</span>
+      <span>Ball Bouncing Mechanics</span>
+    </h1>
+    <div>
+      <div class="statement-rules-content">
         <p>
-          Bouncing [more descriptive bullets]:<br>
-        <ul>
-					<li>Angle <const>0</const> points straight up; <const>+</const><var>angle</var> is <var>angle</var> degrees clockwise, <const>-</const><var>angle</var> is <var>angle</var> degrees counterclockwise</li>
-          <li>Of walls - standard</li>
-          <li>Of bricks - standard, if two adjacent bricks are hit at the same time both are removed</li>
-          <li>Of paddle - paddle is composed of 8 sections each adjusts ball angle by given amount of degrees (see image below; <strong>TODO: better explain</strong>)</li>
-          <li>See <em>Expert rules</em> to understand ball trajectory</li>
-        </ul>
-        Exceptions
-        <ul>
-          <li>Ball angle was >= 10 and now is between -10;10 = adjust to -10</li>
-          <li>Ball angle was <= -10 and now is between -10;10 = adjust to 10</li>
-          <li>Ball angle is < -70 = adjust to -70</li>
-          <li>Ball angle is > 70 = adjust to 70</li>
-        </ul>
+          <em>Angle conventions:</em>
+          <ul>
+            <li><const>0°</const> points straight up.</li>
+            <li>Positive angles rotate clockwise, negative angles rotate counterclockwise.</li>
+          </ul>
+        </p>
+        <p>
+          <em>Wall bounces</em>: Standard reflection.
+        </p>
+        <p>
+        <em>Brick collisions</em>: 
+          <ul>
+            <li>Standard reflection.</li>
+            <li>If two bricks are hit at the same time, both are destroyed.</li>
+          </ul>
+        </p>
+        <p>
+        <em>Paddle bounces</em>: 
+          <ul>
+            <li>Standard reflection + angle adjustment when the ball hits the top of the paddle.</li>
+            <li>The paddle is divided into <const>8</const> sections, each adjusting the ball's angle differently (see image below).</li>
+          </ul>
+        </p>
+        <p>
+          See <em>Expert Rules</em> for a deeper understanding of ball trajectory
         </p>
         <div style="text-align: center; margin: 15px">
           <img src="https://cdn-games.codingame.com/community/3996809-1741549849994/9a829ceadc7af988430c4ff97616c9e68ba60e06f01655b2edfea6706ea36bfd.jpg"
@@ -76,6 +99,25 @@
             </em>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+  <div class="statement-section statement-rules">
+    <h1>
+      <span class="icon icon-rules">&nbsp;</span>
+      <span>Angle Adjustments & Exceptions</span>
+    </h1>
+    <div>
+      <div class="statement-rules-content">
+        <p>
+          Since the <var>ballAngle</var> must always remain between <const>10°</const> and <const>70°</const> or <const>-70°</const> and <const>-10°</const>, additional adjustments are applied when necessary:
+          <ul>
+            <li>If the ball's angle was ≥ <const>10°</const> but would now be between <const>-10°</const> and <const>10°</const>, adjust to <const>-10°</const>.</li>
+            <li>If the ball's angle was ≤ <const>-10°</const> but would now be between <const>-10°</const> and <const>10°</const>, adjust to <const>10°</const>.</li>
+            <li>If the ball's angle becomes < <const>-70°</const>, adjust to <const>-70°</const>.</li>
+            <li>If the ball's angle becomes > <const>70°</const>, adjust to <const>70°</const>.</li>
+          </ul>
+        </p>
         <div class="statement-victory-conditions">
           <div class="icon victory"></div>
           <div class="blk">
@@ -110,13 +152,29 @@
     </h1>
     <div class="statement-examples-text">
       <p>
-        Trajectory computation:<br>
+        Keep in mind, that at any point during computation, no two objects will ever occupy the same pixels.
+      </p>
+      <p>
+        <em>Trajectory computation</em>:<br>
         <ul>
-          <li>Take top-left corner of ball as <var>start</var> point</li>
-          <li>Compute <var>target</var> point at the edge of the board based on <var>start</var> and <var>ballAngle</var> (<var>target</var> is rounded to closest int)</li>
-          <li>Draw Bresenham line from <var>start</var> to <var>target</var>
-          <li>If projection of ball hits obstacle - take previous point on Bresenham line, place the ball there and compute new <var>ballAngle</var></li>
-          <li>If ball hits the brick from top or bottom side <var>newBallAngle</var><const> = 180 - </const><var>ballAngle</var>; <const>-</const><var>ballAngle</var> otherwise</li>
+          <li>Use the top-left corner of the ball as the <var>start</var> point.</li>
+          <li>Compute the <var>target</var> point where the ball would reach the edge of the screen based on its <var>ballAngle</var> (the <var>target</var> coordinates are rounded to the nearest integer).</li>
+          <li>Draw Bresenham line from <var>start</var> to <var>target</var> (see <em>Additional Info</em> for more info on Bresenham).</li>
+          <li>If the projected path of the ball collides with an obstacle (block, paddle or edge of the screen)
+            <ul>
+              <li>Move the ball to the last valid point on the Bresenham line before the obstacle.</li>
+              <li>Adjust <var>ballAngle</var> based on the type of collision.</li>
+            </ul>
+          </li>
+        </ul>
+      </p>
+      <p>
+        <em>Paddle segment selection</em>:<br><br>
+        When the ball hits the paddle from the top:
+        <ul>
+          <li>The ball's horizontal center is considered to be <var>ballX</var> + <const>8</const> (relative to its left side).</li>
+          <li>The <var>X</var> position is clamped to ensure it stays within the paddle's bounds.</li>
+          <li>The angle adjustment is then applied according to the bouncing mechanics.</li>
         </ul>
       </p>
     </div>
@@ -127,7 +185,9 @@
       <span class="icon icon-example">&nbsp;</span>
       <span>Additional Info</span>
     </h1>
-    <div class="statement-examples-text">Assets from <a href="https://schwarnhild.itch.io/brick-breaker-asset-pack">itch.io</a><br>
+    <div class="statement-examples-text">
+      <a href="https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm">Wikipedia article on Bresenham's line algorithm</a><br>
+      Assets from <a href="https://schwarnhild.itch.io/brick-breaker-asset-pack">itch.io</a><br>
       Source code in <a href="https://github.com/VizGhar/CG-BreakOut">my GitHub repo</a><br>
     </div>
   </div>
