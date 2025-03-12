@@ -17,7 +17,7 @@
       <span>The Goal</span>
     </h1>
     <div class="statement-goal-content">
-      <p>BreakOut is game... [very little bit of history and glossary]. Your task is to destroy blocks... in given amount of turns... 1 turn = 1 bounce of paddle.</p>
+      <p>BreakOut is game... [very little bit of history and glossary]. Your task is to destroy bricks... in given amount of turns... 1 turn = 1 bounce of paddle.</p>
     </div>
   </div>
   <div class="statement-section statement-rules">
@@ -32,8 +32,8 @@
         <ul>
           <li>Screen - <const>640×480</const></li>
           <li>Coordinates <const>[0,0]</const> - top-left corner</li>
-          <li>Blocks - <const>80</const> possible placements as shown in image below</li>
-          <li>Block size - <const>64×32</const></li>
+          <li>Bricks - <const>80</const> possible placements as shown in image below</li>
+          <li>Brick size - <const>64×32</const></li>
           <li>Ball size - ball is in game represented as square with dimensions - <const>16×16</const></li>
           <li>Ball angle - always between <const>10,70</const> or <const>-70,-10</const> degrees (including)</li>
           <li>Paddle size - <const>64×16</const></li>
@@ -53,8 +53,8 @@
         <ul>
 					<li>Angle <const>0</const> points straight up; <const>+</const><var>angle</var> is <var>angle</var> degrees clockwise, <const>-</const><var>angle</var> is <var>angle</var> degrees counterclockwise</li>
           <li>Of walls - standard</li>
-          <li>Of blocks - standard, if two blocks are hit at the same time both are removed <strong>any coments on this?</strong></li>
-          <li>Of paddle - paddle is composed of 8 sections each changes ball angle by given amount of degrees <strong>can hit 2 sections equally = take middle value? + maybe replace 8 sections with 64 + revert direction if corner hit?</strong></li>
+          <li>Of bricks - standard, if two adjacent bricks are hit at the same time both are removed</li>
+          <li>Of paddle - paddle is composed of 8 sections each adjusts ball angle by given amount of degrees (see image below; <strong>TODO: better explain</strong>)</li>
           <li>See <em>Expert rules</em> to understand ball trajectory</li>
         </ul>
         Exceptions
@@ -82,7 +82,7 @@
             <div class="title">Victory Conditions</div>
             <div class="text">
               <ul style="padding-bottom:0">
-                <li>Destroy all blocks within a test-dependent turn limit.</li>
+                <li>Destroy all bricks within a test-dependent turn limit.</li>
               </ul>
             </div>
           </div>
@@ -115,8 +115,8 @@
           <li>Take top-left corner of ball as <var>start</var> point</li>
           <li>Compute <var>target</var> point at the edge of the board based on <var>start</var> and <var>ballAngle</var> (<var>target</var> is rounded to closest int)</li>
           <li>Draw Bresenham line from <var>start</var> to <var>target</var>
-          <li>If projection of ball hits obstacle - take previous point on Bresenham line, place the ball there and compute new ballAngle</li>
-          <li>If ball hits the block right to corner, from top side or from the bottom side <var>newBallAngle</var><const> = 180 - </const><var>ballAngle</var>; <const>-</const><var>ballAngle</var> otherwise</li>
+          <li>If projection of ball hits obstacle - take previous point on Bresenham line, place the ball there and compute new <var>ballAngle</var></li>
+          <li>If ball hits the brick from top or bottom side <var>newBallAngle</var><const> = 180 - </const><var>ballAngle</var>; <const>-</const><var>ballAngle</var> otherwise</li>
         </ul>
       </p>
     </div>

@@ -59,7 +59,7 @@ fun GraphicEntityModule.update(
 
     if (simulation != null) {
         val (sim, totalDistance) = simulation
-        gameManager?.frameDuration = totalDistance * 5
+        gameManager?.frameDuration = totalDistance * 3
         var traveledDistance = 0
         for (simulationPoint in sim) {
             traveledDistance += simulationPoint.distance

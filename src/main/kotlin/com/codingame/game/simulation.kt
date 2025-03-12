@@ -104,6 +104,10 @@ data class SimulationMetadata(
     val continueGame: Boolean
 )
 
+private fun Obstacle.Block.isAdjacentTo(other: Obstacle.Block): Boolean {
+    return x == other.x || y == other.y
+}
+
 fun simulateGame(): SimulationMetadata {
     val simulation = mutableListOf<SimulationPoint>()
     var totalDistance = 0
@@ -115,18 +119,30 @@ fun simulateGame(): SimulationMetadata {
             val previousPoint = trajectory[i - 1]
             val hitPoints = precomputedHitBoxes[point] ?: throw IllegalStateException("no hitpoints at $point")
 
-            val hitCandidates = obstacles.filter { obstacle ->
+            var hitCandidates = obstacles.filter { obstacle ->
                 if (obstacle is Obstacle.Block && obstacle.lives <= 0) return@filter false
                 val blockHit = hitPoints.firstOrNull {
                     (it.x == obstacle.x && it.y in obstacle.y..obstacle.y + obstacle.height) ||
-                            (it.x == obstacle.x + obstacle.width && it.y in obstacle.y..obstacle.y + obstacle.height) ||
-                            (it.y == obstacle.y && it.x in obstacle.x..obstacle.x + obstacle.width) ||
-                            (it.y == obstacle.y + obstacle.height && it.x in obstacle.x..obstacle.x + obstacle.width)
+                    (it.x == obstacle.x + obstacle.width && it.y in obstacle.y..obstacle.y + obstacle.height) ||
+                    (it.y == obstacle.y && it.x in obstacle.x..obstacle.x + obstacle.width) ||
+                    (it.y == obstacle.y + obstacle.height && it.x in obstacle.x..obstacle.x + obstacle.width)
                 }
                 blockHit != null
             }
+            // TODO ignore paddle hit from side
 
             if (hitCandidates.isEmpty()) continue
+
+            val blockCandidates = hitCandidates.filterIsInstance<Obstacle.Block>()
+            if (blockCandidates.size == 3) {
+                val (a, b, c) = blockCandidates
+                val newBlockCandidates = when {
+                    a.isAdjacentTo(b) && a.isAdjacentTo(c) -> listOf(b, c)
+                    b.isAdjacentTo(a) && b.isAdjacentTo(c) -> listOf(a, c)
+                    else -> listOf(a, b)
+                }
+                hitCandidates = newBlockCandidates + hitCandidates.filter { it !is Obstacle.Block }
+            }
 
             for (obstacle in hitCandidates) { if (obstacle is Obstacle.Block) { obstacle.lives-- } }
             simulation += SimulationPoint(previousPoint, hitCandidates, i)
@@ -152,8 +168,12 @@ fun simulateGame(): SimulationMetadata {
     )
 
     if (simulation.last().hitBlock.any { it is Obstacle.Paddle }) {
-        // TODO: adjust angle when paddle hit
-        changeBallDirection(0)
+        val dx = (ballPosition.x + 8 - paddlePosition.x).coerceIn(0, 63)
+        if (dx < 32) {
+            changeBallDirection(-10 * (4 - dx/8))
+        } else {
+            changeBallDirection(10 * (dx / 8 - 3))
+        }
     }
 
     val continueGame = simulation.last().hitBlock.any { it is Obstacle.Paddle }
