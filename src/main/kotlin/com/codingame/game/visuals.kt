@@ -85,7 +85,7 @@ fun GraphicEntityModule.initGameVisual(
     val boardY = world.height - boardHeight
 
     createSprite().setImage("corner.png").setX(boardX - 32).setY(boardY - 32)
-    createSprite().setImage("corner.png").setX(boardX + boardWidth).setY(boardY - 32)
+    createSprite().setImage("corner2.png").setX(boardX + boardWidth).setY(boardY - 32)
     createTilingSprite().setImage("side.png").setX(boardX).setY(boardY - 32).setBaseHeight(32).setBaseWidth(boardWidth)
     createTilingSprite().setImage("side.png").setBaseHeight(32).setBaseWidth(world.height).setRotation(Math.toRadians(90.0)).setX(boardX).setY(boardY)
     createTilingSprite().setImage("side.png").setBaseHeight(32).setBaseWidth(world.height).setRotation(Math.toRadians(90.0)).setX(boardX + boardWidth + 32).setY(boardY)
